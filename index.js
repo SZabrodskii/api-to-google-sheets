@@ -9,11 +9,20 @@ const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 const SHEET_NAME = process.env.SHEET_NAME;
 
 async function createUser() {
-    const response = await axios.post(`${API_BASE_URL}/auth/registration`, {
-        username: 'your_username',
-    });
+    try {
+        const response = await axios.post(`${API_BASE_URL}/auth/registration`, {
+            username: 'your_username',
+        });
 
-    return response.data.token;
+        console.log('Registration response:', response.data);
+        return response.data.token;
+    } catch (error) {
+        if (error.response && error.response.status === 400) {
+            console.log('User already exists. Skipping registration.');
+        } else {
+            throw error;
+        }
+    }
 }
 
 async function loginUser() {
@@ -21,6 +30,7 @@ async function loginUser() {
         username: 'your_username',
     });
 
+    console.log('Login response:', response.data);
     return response.data.token;
 }
 
@@ -70,7 +80,6 @@ async function main() {
         await createUser();
 
         const token = await loginUser();
-
         const clientsData = await getClientsData(token);
 
         await writeToGoogleSheet(clientsData);
