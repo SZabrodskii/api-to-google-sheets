@@ -8,14 +8,20 @@ const API_BASE_URL = process.env.API_BASE_URL;
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 const SHEET_NAME = process.env.SHEET_NAME;
 
-async function createUserAndGetToken() {
-    const response = await axios.post(`${API_BASE_URL}/register`, {
+async function createUser() {
+    const response = await axios.post(`${API_BASE_URL}/auth/registration`, {
         username: 'your_username',
-        password: 'your_password',
     });
 
-    const token = response.data.token;
-    return token;
+    return response.data.token;
+}
+
+async function loginUser() {
+    const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+        username: 'your_username',
+    });
+
+    return response.data.token;
 }
 
 async function getClientsData(token) {
@@ -61,9 +67,14 @@ async function writeToGoogleSheet(data) {
 
 async function main() {
     try {
-        const token = await createUserAndGetToken();
+        await createUser();
+
+        const token = await loginUser();
+
         const clientsData = await getClientsData(token);
+
         await writeToGoogleSheet(clientsData);
+
         console.log('Data successfully written to Google Sheets');
     } catch (error) {
         console.error('Error:', error);
